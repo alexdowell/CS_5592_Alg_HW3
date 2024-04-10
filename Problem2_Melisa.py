@@ -41,7 +41,16 @@ class Graph:
         # Storing edge weight in both directions
         self.edge_weights[(u, v)] = weight
         self.edge_weights[(v, u)] = weight
-
+    def is_edge_weight_unique(self, vertex1, vertex2):
+        # Calculate the edge weight
+        edge_weight = self.vertex_labels[vertex1] + self.vertex_labels[vertex2]
+        # Check if the edge weight is unique
+        if edge_weight in self.edge_weights:
+            return False
+        else:
+            # If unique, add to the set and return True
+            self.edge_weights.add(edge_weight)
+            return True
     def vertex_k_labeling(self):
         """
         Assigns labels to vertices according to the provided rules, respecting the maximum label 'k'.
@@ -50,7 +59,10 @@ class Graph:
         self.vertex_labels[0] = 1 # Central vertex always labeled as 1
         k = self.k  # Maximum allowable label
         m = self.m
-# Case 1
+        used_labels = set([1])  # Track used labels for uniqueness
+        used_edge_weights = set()  # Initialize a set to keep track of used edge weights
+
+        # Case 1
         if self.n % 4 in {0, 2, 3}:
             # Labeling internal vertices
             for i in range(1, self.n + 1):
@@ -59,51 +71,92 @@ class Graph:
                     self.vertex_labels[vertex] = 3 * i - 2
                 elif n_ceil + 1 <= i <= self.n:
                     self.vertex_labels[vertex] = 2 * n_ceil + i
+                vertex += 1
 
             # Labeling external vertices
-            vertex +=1
             for i in range(1, n_ceil + 1):
-                for j in range(1, m + 1):  # Adjusted range for dynamic m
-                    label = j+1
+                for j in range(1, m + 1):
+                    weight_counter = 1  # Counter for generating unique labels
+                    while j + 1 in used_labels:
+                        j += 1
+                        weight_counter += 1
+                    label = j + 1
                     self.vertex_labels[vertex] = label
+                    used_labels.add(label)  # Add assigned label to used set
                     vertex += 1
 
             for i in range(n_ceil + 1, self.n + 1):
-                for j in range(1, m + 1):  # Adjusted range for dynamic m
+                for j in range(1, m):
+                    weight_counter = 1
+                    while self.n + i + j - 1 - (2 * n_ceil) in used_labels:
+                        weight_counter += 1
+                        j += 1  # Adjust loop variable to generate new label
                     label = self.n + i + j - 1 - (2 * n_ceil)
                     self.vertex_labels[vertex] = label
+                    used_labels.add(label)
                     vertex += 1
-
         # Case 2: n = 1 (mod 4)
         elif self.n % 4 == 1:
             # Labeling internal vertices
             for i in range(1, self.n + 1):
-                if 1 <= i <= n_ceil:
-                    self.vertex_labels[i] = 3 * i - 2
-                else:
-                    self.vertex_labels[i] = 2 * n_ceil + i - 1
-
-            # Labeling external vertices ensuring uniqueness
+                # The internal vertices labeling logic is unchanged but you should add its edge weights to the used_edge_weights
+                self.vertex_labels[i] = 3 * i - 2 if i <= n_ceil else 2 * n_ceil + i - 1
+                edge_weight = self.vertex_labels[0] + self.vertex_labels[i]
+                used_edge_weights.add(edge_weight)
+            
+            # Labeling external vertices ensuring uniqueness and checking against used edge weights
             vertex = self.n + 1
             for i in range(1, self.n + 1):
-                for j in range(1, self.m + 1):
-                    if i <= n_ceil:
-                        proposed_label = j + 1
-                    elif i == n_ceil + 1 and j == 1:
-                        proposed_label = 2
-                    elif i == n_ceil + 1 and j == 2:
-                        proposed_label = self.n - n_ceil + 3
-                    else:
-                        proposed_label = self.n + i + j - 2 * n_ceil
+                for j in range(1, m + 1):
+                    proposed_label = 2  # Start with an initial guess for the label.
+                    
+                    # Check to ensure this label does not recreate an existing edge weight.
+                    # Calculate the edge weight as you would when connecting this new vertex.
+                    while True:
+                        edge_weight = self.vertex_labels[i] + proposed_label
+                        if proposed_label in used_labels or edge_weight in used_edge_weights or proposed_label > k:
+                            proposed_label = (proposed_label % k) + 1  # Wrap the label if necessary.
+                        else:
+                            break  # Found a valid label that doesn't recreate an edge weight.
 
-                    # Ensure the label does not exceed k
-                    self.vertex_labels[vertex] = min(proposed_label, k)
-                    vertex += 1
+                    # Assign the found label and update the tracking sets.
+                    self.vertex_labels[vertex] = proposed_label
+                    used_labels.add(proposed_label)
+                    used_edge_weights.add(edge_weight)  # Store the new edge weight as used.
+                    vertex += 1  # Move to the next external vertex index.
 
+         # # Case 2: n = 1 (mod 4)  Original code for reference 
+        # elif self.n % 4 == 1:
+        #     # Labeling internal vertices
+        #     for i in range(1, self.n + 1):
+        #         if 1 <= i <= n_ceil:
+        #             self.vertex_labels[i] = 3 * i - 2
+        #         else:
+        #             self.vertex_labels[i] = 2 * n_ceil + i - 1
+
+        #     # Labeling external vertices ensuring uniqueness
+        #     vertex = self.n + 1
+        #     for i in range(1, self.n + 1):
+        #         for j in range(1, self.m):
+        #             if i <= n_ceil:
+        #                 proposed_label = j + 1
+        #             elif i == n_ceil + 1 and j == 1:
+        #                 proposed_label = 2
+        #             elif i == n_ceil + 1 and j == 2:
+        #                 proposed_label = self.n - n_ceil + 3
+        #             else:
+        #                 proposed_label = self.n + i + j - 2 * n_ceil
+
+        #             # Ensure the label does not exceed k
+        #             self.vertex_labels[vertex] = min(proposed_label, k)
+        #             vertex += 1
         # Verify all labels are assigned
         if None in self.vertex_labels.values():
             missing_labels = [vertex for vertex, label in self.vertex_labels.items() if label is None]
             raise ValueError(f"Missing labels for vertices: {missing_labels}")
+        return self.vertex_labels
+
+
 
         return self.vertex_labels
             
