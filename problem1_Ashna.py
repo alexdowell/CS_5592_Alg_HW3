@@ -79,23 +79,15 @@ class Graph:
             vertex += 1
             for i in range(1, math.ceil(self.n / 4)):
                 for j in range(1, 3):
-                    if j == 1 and i == math.ceil(self.n / 4):
+                    if i <= math.ceil(self.n / 4):
+                        self.vertex_labels[vertex] = j + 1
+                    elif i == math.ceil(self.n / 4) + 1 and j == 1:
                         self.vertex_labels[vertex] = 2
-                        vertex = vertex + 1
-                    elif j == 2 and i == math.ceil(self.n / 4):
+                    elif i == math.ceil(self.n / 4) and j == 2:
                         self.vertex_labels[vertex] = self.n - math.ceil(self.n / 4) + 3
-                        vertex = vertex + 1
-            for i in range(math.ceil(self.n / 4) + 1, self.n + 1):
-                for j in range(1, 3):
-                    if j == 1 and i == math.ceil(self.n / 4):
-                        self.vertex_labels[vertex] = 2
-                        vertex = vertex + 1
-                    elif j == 2 and i == math.ceil(self.n / 4):
-                        self.vertex_labels[vertex] = self.n - math.ceil(self.n / 4) + 3
-                        vertex = vertex + 1
                     else:
                         self.vertex_labels[vertex] = self.n + i + j - 2 * math.ceil(self.n / 4)
-                        vertex = vertex + 1
+                    vertex = vertex + 1
         return self.vertex_labels
     
     def calculate_edge_weights(self):
