@@ -2,6 +2,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import numpy as np
 import time 
+import math 
 
 class Graph:
     def __init__(self, n):
@@ -47,7 +48,10 @@ def assign_labels(graph):
     """
     vertex_labels = {}  # Dictionary to store vertex labels
     edge_labels = {}  # Dictionary to store edge labels
-    k = (1 + graph.n + 2 * graph.n) // 2
+    # Calculate k based on the number of edges and vertices using the ceiling function
+    number_of_edges = 3 * graph.n + graph.n  # Correct formula for the number of edges in the modified star graph
+    k = math.ceil(number_of_edges * math.log2(graph.order))  # Use math.ceil to round up
+    print("k value (upper bound): ", k)
 
     # Greedy labeling starting from central vertex
     vertex_labels[0] = 1 # min(graph.n + 1, k)  # Labeling the center vertex
@@ -55,14 +59,18 @@ def assign_labels(graph):
     # Output vertex labels
     inner_verts = 11
     for vert in range(1, graph.n + 1):
-        vertex_labels[vert] = inner_verts
+        vertex_labels[vert] = min(k, inner_verts)
         inner_verts += 4
  
     for i in range(1, graph.n+1):
         branch_val = vertex_labels[i]
         for j in range(1, 4, 2):
             vert = vert + 1
-            vertex_labels[vert] = branch_val + j
+            vertex_labels[vert] = min(k, branch_val + j)
+            
+    # After labeling, find the maximum vertex label
+    max_vertex_label = max(vertex_labels.values())
+    print("Maximum vertex label value: ", max_vertex_label)
 
 
 
@@ -100,7 +108,7 @@ def main():
     # Initialize graph
     graph = Graph(n)
 
-    # Adding edges for the Snowflake graph
+    # Adding edges for the modified star graph
     for i in range(1, n + 1):
         graph.add_edge(0, i, 0)  # Connect branch nodes to center
         leaf1 = n + 2 * (i - 1) + 1
