@@ -53,7 +53,7 @@ class Graph:
                 vertex = i
                 if 1 <= i <= math.ceil(self.n / 4) + 1:
                     self.vertex_labels[vertex] = 3 * i - 2
-                elif math.ceil(self.n / 4) + 1 <= i <= self.n:
+                elif math.ceil(self.n / 4) + 2 <= i <= self.n:
                     self.vertex_labels[vertex] = 2 * math.ceil(self.n / 4) + i
     
             # Labeling external vertices
@@ -67,7 +67,35 @@ class Graph:
                 for j in range(1, 3):
                     self.vertex_labels[vertex] = self.n + i + j - 1 - 2 * math.ceil(self.n / 4)
                     vertex = vertex + 1
-        
+        # Case 2 
+        elif self.n % 4 == 1:
+            for i in range(1, self.n + 1):
+                vertex = i
+                if 1 <= i <= math.ceil(self.n / 4):
+                    self.vertex_labels[vertex] = 3 * i - 2
+                elif math.ceil(self.n / 4) <= i <= self.n:
+                    self.vertex_labels[vertex] = 2 * math.ceil(self.n / 4) + i - 1
+            # Labeling external vertices
+            vertex += 1
+            for i in range(1, math.ceil(self.n / 4)):
+                for j in range(1, 3):
+                    if j == 1 and i == math.ceil(self.n / 4):
+                        self.vertex_labels[vertex] = 2
+                        vertex = vertex + 1
+                    elif j == 2 and i == math.ceil(self.n / 4):
+                        self.vertex_labels[vertex] = self.n - math.ceil(self.n / 4) + 3
+                        vertex = vertex + 1
+            for i in range(math.ceil(self.n / 4) + 1, self.n + 1):
+                for j in range(1, 3):
+                    if j == 1 and i == math.ceil(self.n / 4):
+                        self.vertex_labels[vertex] = 2
+                        vertex = vertex + 1
+                    elif j == 2 and i == math.ceil(self.n / 4):
+                        self.vertex_labels[vertex] = self.n - math.ceil(self.n / 4) + 3
+                        vertex = vertex + 1
+                    else:
+                        self.vertex_labels[vertex] = self.n + i + j - 2 * math.ceil(self.n / 4)
+                        vertex = vertex + 1
         return self.vertex_labels
     
     def calculate_edge_weights(self):
