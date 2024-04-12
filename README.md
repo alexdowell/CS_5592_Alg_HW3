@@ -112,10 +112,11 @@ Graph data of labels and edge weights along with estimated time complexity will 
 Using test_limits the system will construct graphs n>=3 and m>=1 incrementing by 1. Though this is not a full coverage and precise measurement we are still able to get a good estimation of what limitations are depending on hardware specifications. 
 
 Testing Specs:
-      - CPU: AMD Ryzen 9 3950X      
-      - GPU: NVIDIA GeForce RTX 2080 SUPER
-      - Motherboard: ASUS PRIME X570-P
-      - RAM: 2x G.Skill F4-3600C18-32GTZR DDR4
+
+         - CPU: AMD Ryzen 9 3950X      
+         - GPU: NVIDIA GeForce RTX 2080 SUPER
+         - Motherboard: ASUS PRIME X570-P
+         - RAM: 2x G.Skill F4-3600C18-32GTZR DDR4
    
 ### Compute the Time Complexity of your algorithm T(V,E) or T(n).
 compute_time_complexity function outputs the estimated time complexity to the graph_output.txt file.
