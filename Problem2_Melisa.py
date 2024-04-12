@@ -1,311 +1,306 @@
-# Importing necessary libraries
 import math
 import networkx as nx
 import matplotlib.pyplot as plt
+import time
+import psutil
 
-# Class definition for a graph
+
 class Graph:
-    def __init__(self, n, m, order, k):
+    def __init__(self, n, m, k, order, d):
         """
-        Initializes a graph object for a homogeneous amalgamated star S(n, m).
+        Initializes an instance of the class.
 
-        Args:
-            n (int): The number of arms.
-            m (int): The order of each arm.
-            order (int): The total number of vertices.
-            k (int): The maximum value a vertex label can take.
+        Parameters:
+        - n (int): The value of n.
+        - m (int): The value of m.
+        - k (int): The value of k.
+        - order (int): The value of order.
+        - d (int): The value of d.
+
+        Returns:
+        None
         """
-        # Initializing graph parameters
+        # Initializing data structures to represent the graph
         self.n = n
         self.m = m
         self.k = k
         self.order = order
-        # Initializing data structures to represent the graph
-        self.adj_list = {i: [] for i in range(self.order)}  # Adjacency list representation of the graph
-        self.edge_weights = {}  # Dictionary to store edge weights
-        self.vertex_labels = {i: None for i in range(self.k)}  # Dictionary to store vertex labels
+        self.d = d
+        self.adj_list = {i: [] for i in range(order)}  # Adjacency list representation of the graph
+        self.vertex_labels = {i: None for i in range(order)}  # Dictionary to store vertex labels
+        
+        ## Uncomment for edge weights set list min approach ##
+        self.edge_weights_set = set(range(2, self.k*2 + 1)) # Set of possible edge weights
+        self.edge_weights = {}
 
-    
     def add_edge(self, u, v, weight):
-        """
-        Adds an edge between two nodes with a given weight.
 
-        Args:
-            u (int): One end of the edge.
-            v (int): The other end of the edge.
-            weight (int): The weight to be assigned to the edge.
-        """
         # Adding edge to the adjacency list
         self.adj_list[u].append(v)
         self.adj_list[v].append(u)
+
         # Storing edge weight in both directions
         self.edge_weights[(u, v)] = weight
         self.edge_weights[(v, u)] = weight
-    def is_edge_weight_unique(self, vertex1, vertex2):
-        # Calculate the edge weight
-        edge_weight = self.vertex_labels[vertex1] + self.vertex_labels[vertex2]
-        # Check if the edge weight is unique
-        if edge_weight in self.edge_weights:
-            return False
-        else:
-            # If unique, add to the set and return True
-            self.edge_weights.add(edge_weight)
-            return True
+
+    def get_adj_list(self):
+        return self.adj_list
+    
+
+    def find_min_weight(self):
+
+        write_to_output_file("edge_set.txt", "List of available edge weights: ", self.edge_weights_set)
+        min_weight = min(self.edge_weights_set)
+        return min_weight
+    
+    def build_graph(self):
+        
+        outer_verts = self.n
+        # Constructing the star graph with n branchs and m leaves per branch by adding edges 
+        for i in range(1, self.n + 1):
+            self.add_edge(0, i, 0)  # Connect central vertex to banches
+            for j in range(1, self.m):
+                outer_verts += 1
+                self.add_edge(i, outer_verts, 0) # Connect branch to their external leaves     
+                
     def vertex_k_labeling(self):
         """
-        Assigns labels to vertices according to the provided rules, respecting the maximum label 'k'.
+        Greedy labeling starting from the central vertex.
+
+        Returns:
+        dict: A dictionary of vertex labels.
         """
-        n_ceil = math.ceil(self.n / 4)
-        self.vertex_labels[0] = 1 # Central vertex always labeled as 1
-        k = self.k  # Maximum allowable label
-        m = self.m
-        used_labels = set([1])  # Track used labels for uniqueness
-        used_edge_weights = set()  # Initialize a set to keep track of used edge weights
-
-        # Case 1
-        if self.n % 4 in {0, 2, 3}:
-            # Labeling internal vertices
-            for i in range(1, self.n + 1):
-                vertex = i
-                if 1 <= i <= n_ceil + 1:
-                    self.vertex_labels[vertex] = 3 * i - 2
-                elif n_ceil + 1 <= i <= self.n:
-                    self.vertex_labels[vertex] = 2 * n_ceil + i
-                vertex += 1
-
-            # Labeling external vertices
-            for i in range(1, n_ceil + 1):
-                for j in range(1, m + 1):
-                    weight_counter = 1  # Counter for generating unique labels
-                    while j + 1 in used_labels:
-                        j += 1
-                        weight_counter += 1
-                    label = j + 1
-                    self.vertex_labels[vertex] = label
-                    used_labels.add(label)  # Add assigned label to used set
-                    vertex += 1
-
-            for i in range(n_ceil + 1, self.n + 1):
-                for j in range(1, m):
-                    weight_counter = 1
-                    while self.n + i + j - 1 - (2 * n_ceil) in used_labels:
-                        weight_counter += 1
-                        j += 1  # Adjust loop variable to generate new label
-                    label = self.n + i + j - 1 - (2 * n_ceil)
-                    self.vertex_labels[vertex] = label
-                    used_labels.add(label)
-                    vertex += 1
-        # Case 2: n = 1 (mod 4)
-        elif self.n % 4 == 1:
-            # Labeling internal vertices
-            for i in range(1, self.n + 1):
-                # The internal vertices labeling logic is unchanged but you should add its edge weights to the used_edge_weights
-                self.vertex_labels[i] = 3 * i - 2 if i <= n_ceil else 2 * n_ceil + i - 1
-                edge_weight = self.vertex_labels[0] + self.vertex_labels[i]
-                used_edge_weights.add(edge_weight)
+        d = self.d
+        self.vertex_labels[0] = 1  # Label for central vertex
+        leaf_verts = self.n              # Counter for leaf vertices
+        
+        current_label = 0           # Initialize current_label to 0
+        # Labeling of internal/arm vertices of the graph
+        for branch in range(1, self.n + 1):
+            # Hardcode the first branch vertex label to 1
+            if branch == 1:
+                self.vertex_labels[branch] = 1 
+                weight = self.vertex_labels[0] + self.vertex_labels[branch]       # Calculate edge weight
+                
+                # Assign edge weight to the edge from center vertex to the branch in both directions **
+                self.edge_weights[(0, branch)] = weight
+                self.edge_weights[(branch, 0)] = weight
+                
+                self.edge_weights_set.remove(weight)
+                
+                # Labeling the rest of the branch vertices from branch 2 to n (inclusive)
+            else:
+                current_label = current_label + d                                # From branch 2 to n (inclusive), the label is incremented by d, where d = k/(n-1), k is the maximum label value (ceiling), and n is the number of branch vertices.
+                self.vertex_labels[branch] = math.floor(current_label)          # Assign the floored value of current_label to the branch vertex 
+                weight = self.vertex_labels[0] + self.vertex_labels[branch]    # Calculate edge weight
+                self.edge_weights[(branch, 0)] = weight
+                self.edge_weights[(0, branch)] = weight
+                
+                self.edge_weights_set.remove(weight)
+                
+        # Labeling of leaf vertices of the graph
+        
+        for branch in range(1, self.n + 1):                                         # Iterate through each branch vertex
+            for leaf in range(1, self.m):                                           # Iterate through each leaf vertex of the branch
+                leaf_weight = self.find_min_weight()                          # Find the minimum weight that is not already assigned to an edge
+                leaf_verts += 1                                                # Increment the leaf vertex counter by 1 to get the next leaf vertex number.
+                self.vertex_labels[leaf_verts] =  leaf_weight - self.vertex_labels[branch] 
+                self.edge_weights[(leaf_verts, branch)] = leaf_weight
+                self.edge_weights[(branch, leaf_verts)] = leaf_weight
+                self.edge_weights_set.remove(leaf_weight)
             
-            # Labeling external vertices ensuring uniqueness and checking against used edge weights
-            vertex = self.n + 1
-            for i in range(1, self.n + 1):
-                for j in range(1, m + 1):
-                    proposed_label = 2  # Start with an initial guess for the label.
-                    
-                    # Check to ensure this label does not recreate an existing edge weight.
-                    # Calculate the edge weight as you would when connecting this new vertex.
-                    while True:
-                        edge_weight = self.vertex_labels[i] + proposed_label
-                        if proposed_label in used_labels or edge_weight in used_edge_weights or proposed_label > k:
-                            proposed_label = (proposed_label % k) + 1  # Wrap the label if necessary.
-                        else:
-                            break  # Found a valid label that doesn't recreate an edge weight.
-
-                    # Assign the found label and update the tracking sets.
-                    self.vertex_labels[vertex] = proposed_label
-                    used_labels.add(proposed_label)
-                    used_edge_weights.add(edge_weight)  # Store the new edge weight as used.
-                    vertex += 1  # Move to the next external vertex index.
-
-         # # Case 2: n = 1 (mod 4)  Original code for reference 
-        # elif self.n % 4 == 1:
-        #     # Labeling internal vertices
-        #     for i in range(1, self.n + 1):
-        #         if 1 <= i <= n_ceil:
-        #             self.vertex_labels[i] = 3 * i - 2
-        #         else:
-        #             self.vertex_labels[i] = 2 * n_ceil + i - 1
-
-        #     # Labeling external vertices ensuring uniqueness
-        #     vertex = self.n + 1
-        #     for i in range(1, self.n + 1):
-        #         for j in range(1, self.m):
-        #             if i <= n_ceil:
-        #                 proposed_label = j + 1
-        #             elif i == n_ceil + 1 and j == 1:
-        #                 proposed_label = 2
-        #             elif i == n_ceil + 1 and j == 2:
-        #                 proposed_label = self.n - n_ceil + 3
-        #             else:
-        #                 proposed_label = self.n + i + j - 2 * n_ceil
-
-        #             # Ensure the label does not exceed k
-        #             self.vertex_labels[vertex] = min(proposed_label, k)
-        #             vertex += 1
-        # Verify all labels are assigned
-        if None in self.vertex_labels.values():
-            missing_labels = [vertex for vertex, label in self.vertex_labels.items() if label is None]
-            raise ValueError(f"Missing labels for vertices: {missing_labels}")
         return self.vertex_labels
 
+    def visualize_graph(self):
+        """
+        Visualizes the graph using NetworkX and Matplotlib.
 
+        Returns:
+        None
+        """
 
-        return self.vertex_labels
+        if self.n * self.m < 100:  # Threshold check
             
-    def calculate_edge_weights(self):
+            # Getting the vertex labels, adjacency list, and edge weights
+            vertex_labels = self.vertex_labels
+            adj_list = self.adj_list
+            
+            plt.figure(figsize=(12, 12))
+            G = nx.Graph()
+            G.add_nodes_from(range(self.order))
+
+            # Adding edges from adjacency list
+            for vertex, neighbors in adj_list.items():
+                for neighbor in neighbors:
+                    G.add_edge(vertex, neighbor)
+            pos = nx.spring_layout(G, seed= 123 )  # positions for all nodes
+
+            # Adding node labels
+            labels = {node: str(label) for node, label in vertex_labels.items()}
+            nx.draw_networkx_labels(G, pos, labels=labels, font_size=10, font_color='black')
+
+            # Drawing the graph
+            nx.draw(G, pos, with_labels=False, node_color='powderblue', node_size=1500)
+
+            # Drawing edge labels
+            nx.draw_networkx_edge_labels(G, pos, edge_labels=self.edge_weights, font_color='indigo')
+            
+            plt.title('Edge Irregular Amalgamated Star Graph of S_{},{}'.format(self.n, self.m))
+            plt.axis('off')
+
+            # Save the graph as a PNG file
+            plt.savefig("star_graph.png")
+            
+            plt.show()
+
+        else:
+            print("The graph is too large to visualize.")
+            
+    def compute_complexity(self):
         """
-        Calculates edge weights based on vertex labels and adjacency list.
+        Computes the theoretical time complexity of the algorithm.
+
+        Returns:
+        str: The theoretical time complexity of the algorithm.
         """
-        for vertex, neighbors in self.adj_list.items():
-            for neighbor in neighbors:
-                # Calculate edge weight by summing up the labels of the two vertices
-                weight = self.vertex_labels[vertex] + self.vertex_labels[neighbor]
-                self.edge_weights[(vertex, neighbor)] = weight
-                self.edge_weights[(neighbor, vertex)] = weight
+        complexity = self.n * self.m * self.k
+        return f"T({complexity})"  
+            
+            
+## ------------------ ##
+
+def write_to_output_file(file_name, sentence, value):
+    """
+    Writes the sentence and value to the output file.
+
+    Parameters:
+    - file_name (str): The name of the output file.
+    - sentence (str): The sentence to be logged.
+    - value (int or float): The value to be logged.
+
+    Returns:
+    None
+    """
+    with open(file_name, 'a') as file:               # Open the file in append mode and write the sentence and value to the file if it exists. If the file does not exist, create it and write the sentence and value to the file.
+        file.write(f"{sentence} {value}\n")
+
+def graph_output(graph, vertex_labels, edge_weights):
+    """
+    Outputs graph data to a graph_output.txt file.
+    
+    Parameters:
+    - graph (Graph): The graph object.
+    - vertex_labels (dict): A dictionary containing the vertex labels.
+    - edge_weights (dict): A dictionary containing the edge weights.
+    
+    Returns:
+    None
+    """
+    write_to_output_file("graph_output.txt", "Vertex Labels: ", vertex_labels)
+    write_to_output_file("graph_output.txt", "Edge Weights: ", edge_weights)
+    write_to_output_file("graph_output.txt", "Theoretical Time Complexity: ", graph.compute_complexity())
+
+def start_output_files(n, m, k, order, d ):
+    """
+    Initializes the output files with the input parameters.
+    
+    Parameters:
+    - n (int): The number of arms.
+    - m (int): The number of leaves per arm.
+    - k (int): The maximum label value.
+    - order (int): The total number of vertices.
+    - d (int): The value of d.
+    
+    Returns:
+    None
+    """
+    with open("graph_output.txt", 'w') as file:
+        file.write("\n+--------------------------+\n")
+        file.write(f"n: {n}\n")
+        file.write(f"m: {m}\n")
+        file.write(f"k: {k}\n")
+        file.write(f"order: {order}\n")
+        file.write(f"d: {d}\n")
+        file.write("\n")
         
-        return self.edge_weights
+    with open("edge_set.txt", 'w') as file:
+        file.write("\n+--------------------------+\n")
+        file.write(f"n: {n}\n")
+        file.write(f"m: {m}\n")
+        file.write(f"k: {k}\n")
+        file.write(f"order: {order}\n")
+        file.write(f"d: {d}\n")
+        file.write("\n")
     
-    def get_adj_list(self):
-        """
-        Returns the adjacency list of the graph.
-        """
-        return self.adj_list
-    def recalculate_arm_labeling(self, arm_number, m):
-        """
-        Recalculates the labeling for the specified arm if an edge weight exists.
-
-        Args:
-            arm_number (int): The arm number.
-            m (int): The order of the arm.
-        """
-        for j in range(1, m + 1):  # Adjusted range for dynamic m
-            self.vertex_labels[arm_number + (j - 1) * self.n] = (j - 1) % m + 1
-def create_and_label_graph(n, m):
-    order = math.ceil(m * n + 1)  # Total number of vertices including the central node
-    k = math.ceil(order / 2)  # Maximum value a vertex label can take
-    graph = Graph(n, m, order, k)
-
-    # Connect each arm node to the central node (0)
-    outer_verts = n
-
-    # Adding edges for the star graph
-    for i in range(1, n + 1):
-        graph.add_edge(0, i, 0)  # Connect central vertex to inner vertices
-        for j in range(1, m):
-            outer_verts += 1
-            graph.add_edge(i, outer_verts, 0) # Connect inner vertices to their external vertices
-
-    # Label the vertices
-    graph.vertex_k_labeling()
-
-    # Before calculating edge weights, check that all vertices have a label assigned
-    missing_labels = [v for v, label in graph.vertex_labels.items() if label is None]
-    if missing_labels:
-        raise ValueError(f"Missing labels for vertices: {missing_labels}")
-
-    # Calculate edge weights
-    graph.calculate_edge_weights()
-
-    return graph
-
-
-
-def print_graph_info(vertex_labels, adj_list, edge_weights, filename='graph_output.txt'):
-    with open(filename, 'w') as file:
-        file.write("===== Vertex Labels =====\n")
-        for vertex, label in vertex_labels.items():
-            file.write(f"Vertex: {vertex}, Label: {label}\n")
-        
-        file.write("\n===== Adjacency List =====\n")
-        for vertex, neighbors in adj_list.items():
-            neighbors_str = ', '.join(map(str, neighbors))  # Convert list of neighbors to string
-            file.write(f"Vertex: {vertex}, Neighbors: [{neighbors_str}]\n")
-        
-        file.write("\n===== Edge Weights =====\n")
-        for edge, weight in edge_weights.items():
-            file.write(f"Edge: {edge}, Weight: {weight}\n")
-def visualize_graph(graph, vertex_labels, edge_weights):
-    G = nx.Graph()
     
-    # Ensure all nodes are added, even if they don't have connected edges yet.
-    G.add_nodes_from(range(graph.order))
     
-    # Adding edges based on the adjacency list
-    for vertex, neighbors in graph.get_adj_list().items():
-        for neighbor in neighbors:
-            if (vertex, neighbor) not in edge_weights:  # Ensure there's an edge weight before adding
-                continue
-            G.add_edge(vertex, neighbor, weight=edge_weights[(vertex, neighbor)])
-
-    pos = nx.spring_layout(G)  # Compute the positions for all nodes.
-
-    # Ensuring all vertex labels are present for drawing
-    labels = {node: str(vertex_labels[node]) for node in G.nodes()}
+def build_and_visualize_graph(n, m):
+    """
+    Builds and visualizes the graph with n arms and m leaves per arm.
     
-    nx.draw_networkx_labels(G, pos, labels=labels, font_size=10, font_color='black')
-    nx.draw(G, pos, with_labels=False, node_color='skyblue', node_size=500)
-    edge_labels = {(u, v): edge_weights[(u, v)] for u, v in G.edges()}
-    nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_color='red')
-
-    plt.show()
-def available_memory():
-    return psutil.virtual_memory().available
-
-def test_limits(initial_n, initial_m, base_increment, memory_limit_ratio=0.8, timeout_seconds=300):
-    n, m = initial_n, initial_m
-    increment = base_increment
-    max_n, max_m = n, m
-    memory_limit = available_memory() * memory_limit_ratio
-    start_time = time.time()
-
+    Parameters:
+    - n (int): The number of arms.
+    - m (int): The number of leaves per arm.
+    
+    Returns:
+    None
+    """
+    k = math.ceil((m * n  + 1) / 2)  # Maximum label value (ceiling)
+    order = m * n + 1                # Total number of vertices
+    d = k/(n-1)                      # Value of d 
+    graph = Graph(n, m, k, order, d) # Create a graph object
+    start_output_files(n, m, k, order, d)  # Initialize the output files with the input parameters
+    graph.build_graph()              # Build the graph
+    graph.vertex_k_labeling()        # Label the vertices
+    graph.visualize_graph()          # Visualize the graph
+   
+    graph_output(graph, graph.vertex_labels, graph.edge_weights)  # Output graph data to a file
+def test_limits(n, m, increment):
+    """
+    Tests the hardware limits by building a graph with n arms and m leaves per arm.
+    
+    Parameters:
+    - n (int): The number of arms.
+    - m (int): The number of leaves per arm.
+    - increment (int): The increment value for n and m.
+    
+    Returns:
+    tuple: A tuple containing the maximum supported n and m values.
+    """
+    max_n = 0  # Maximum supported n value
+    max_m = 0  # Maximum supported m value
     while True:
-        if time.time() - start_time > timeout_seconds:
-            print("Testing timeout reached. Returning the last found values.")
-            break
-
         try:
-            graph = Graph(n, m)
-            graph.build_graph()
-
-            # Estimate current memory usage
-            current_memory_usage = psutil.Process().memory_info().rss
-
-            if current_memory_usage > memory_limit:
-                if increment > 1:
-                    # If the limit is reached, step back and reduce increment
-                    n -= increment
-                    m -= increment
-                    increment = 1  # Fine-tune with smallest possible increment
-                    continue
-                break  # Break if already at smallest increment
-
-            max_n, max_m = n, m
+            build_and_visualize_graph(n, m)
+            max_n = n
+            max_m = m
             n += increment
-            m += increment  # Increment both n and m
-
+            m += increment
         except MemoryError:
             break
+    return max_n, max_m    
+    
+def available_memory():
+    """
+    Returns the available memory in bytes.
+    """
+    return psutil.virtual_memory().available
 
-    return max_n, max_m
-    
-    
-# Main function
 
 def main():
-    n = int(input("Enter the number of arms (n): "))
-    m = int(input("Enter the order of each arm (m): "))  # m represents the order of each arm
-    
-    graph = create_and_label_graph(n, m)
-    print_graph_info(graph.vertex_labels, graph.get_adj_list(), graph.edge_weights, 'graph_info_output.txt')
-    visualize_graph(graph, graph.vertex_labels, graph.edge_weights)
+    user_input = input("Enter 'test' to find the hardware limits or 'build' to specify n and m: ").strip().lower()
 
+    if user_input == "test":
+        print("Testing hardware limits. This might take a while...")
+        max_n, max_m = test_limits(3, 1, 1) # Test the hardware limits for n>=3 and m>=1 values
+        print(f"Maximum supported n: {max_n}, Maximum supported m: {max_m}")
+    elif user_input == "build":
+        n = int(input("Enter the number of arms (n): "))
+        m = int(input("Enter the number of leaves per arm (m): "))
+        build_and_visualize_graph(n, m)
+    else:
+        print("Invalid input. Please enter 'test' or 'build'.")
+    
 if __name__ == "__main__":
     main()
+    
