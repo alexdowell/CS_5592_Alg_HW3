@@ -45,7 +45,7 @@ a. **Algorithm Pseduocode** (vertex_k_labeling())
     vii. **Return vertex labels.**
 b. **Pseudocode Image**
 
-![S_n_3-Pseudo-img](./Images/S_n,3-Pseudo-img.png)
+![S_n_3-Pseudo-img](Images/S_n,3-Psedo-img.png)
 
 For more details, you can refer to the research paper: 
 Asim, Muhammad & Hasni, Roslan & Ahmad, Ali. (2019). Edge irregular k-labeling for several classes of trees. Utilitas Mathematica. 111. 75-83. 
