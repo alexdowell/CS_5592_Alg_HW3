@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import time
 import psutil
 import time
+import threading
 
 
 class Graph:
@@ -241,8 +242,6 @@ def start_output_files(n, m, k, order, d ):
         file.write(f"d: {d}\n")
         file.write("\n")
     
-    
-    
 def build_and_visualize_graph(n, m):
     """
     Builds and visualizes the graph with n arms and m leaves per arm.
@@ -264,31 +263,61 @@ def build_and_visualize_graph(n, m):
     graph_output(graph, graph.vertex_labels, graph.edge_weights)  # Output graph data to a file
     graph.visualize_graph()          # Visualize the graph
     
+def build_graph_test(n, m):
+    k = math.ceil((m * n  + 1) / 2)  # Maximum label value (ceiling)
+    order = m * n + 1                # Total number of vertices
+    d = k/(n-1)                      # Value of d 
+    graph = Graph(n, m, k, order, d) # Create a graph object
+    graph.build_graph()              # Build the graph
+def timeout_handler(signum, frame):
+    raise TimeoutError("Timeout reached")
+    
+    
 def test_limits(n, m, increment):
     """
-    Tests the hardware limits by building a graph with n arms and m leaves per arm.
-    
+    Tests the hardware limits by building a graph with n arms and constant m leaves per arm,
+    including a timeout feature to stop operations that take too long.
+
     Parameters:
     - n (int): The number of arms.
-    - m (int): The number of leaves per arm.
-    - increment (int): The increment value for n and m.
-    
+    - m (int): The constant number of leaves per arm.
+    - increment (int): The increment value for n.
+
     Returns:
     tuple: A tuple containing the maximum supported n and m values.
     """
-    max_n = 0  # Maximum supported n value
-    max_m = 0  # Maximum supported m value
-    while True:
-        try:
-            build_and_visualize_graph(n, m)
-            max_n = n
-            max_m = m
-            n += increment
-            m += increment
-        except MemoryError:
-            break
-    return max_n, max_m    
-    
+    max_n = n  # Maximum supported n value
+    max_m = m  # Constant m value, not changing
+    timeout = 60  # Timeout in seconds
+    stop_event = threading.Event()  # Event to signal timeout
+    try:
+        while True:
+            timer = threading.Timer(timeout, stop_event.set)  # Setup the timer to set the stop event on timeout
+            try:
+                if psutil.virtual_memory().available < 1024 * 1024 * 1024:  # Check if available memory is less than 1GB
+                    print("Insufficient memory. Exiting...")
+                    break
+                timer.start()  # Start the timer
+                build_graph_test(n, m)  # Build the graph with constant m
+                if stop_event.is_set():  # Check if the timeout has been reached
+                    print(f"Operation stopped due to timeout with n = {n}, m = {m}")
+                    break
+                max_n = n  # Update max_n to the last successful n
+                n += increment  # Increment only n, m remains constant
+            except MemoryError:
+                print(f"Memory limit reached with n = {n}, m = {m}")
+                break
+            except Exception as e:
+                print(f"An unexpected error occurred: {e}")
+                break
+            finally:
+                timer.cancel()  # Ensure the timer is canceled to avoid unwanted side effects
+                stop_event.clear()  # Reset the stop event for the next iteration
+    except KeyboardInterrupt:
+        print(f"Keyboard Interrupt: Current values - n = {max_n} , m = {m}")
+
+    return max_n, max_m
+
 def available_memory():
     """
     Returns the available memory in bytes.
@@ -301,7 +330,7 @@ def main():
 
     if user_input == "test":
         print("Testing hardware limits. This might take a while...")
-        max_n, max_m = test_limits(3, 1, 1) # Test the hardware limits for n>=3 and m>=1 values
+        max_n, max_m = test_limits(3, 4, 1) # Test the hardware limits for n>=3 and m=2
         print(f"Maximum supported n: {max_n}, Maximum supported m: {max_m}")
     elif user_input == "build":
         n = int(input("Enter the number of arms (n): "))
