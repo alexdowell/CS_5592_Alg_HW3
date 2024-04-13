@@ -100,7 +100,8 @@ class Graph:
                 self.edge_weights[(branch, 0)] = weight
                 self.edge_weights[(0, branch)] = weight
                 
-                self.edge_weights_set.remove(weight)
+                if weight in self.edge_weights_set:
+                    self.edge_weights_set.remove(weight)
                 
         # Labeling of leaf vertices of the graph
         
@@ -161,7 +162,7 @@ class Graph:
             # Save the graph as a PNG file
             plt.savefig("star_graph.png")
             
-            # plt.show()  # Uncomment to display the graph in the console
+            plt.show()  # Uncomment to display the graph in the console
 
         else:
             print("The graph is too large to visualize.")
