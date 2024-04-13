@@ -1,14 +1,14 @@
 # Assig-3: Tasks
 
 
-### Find out the best data-structure to represent / store the graph in memory.
-An adjacency list was chosen as the optimal data structure for representing and storing the graph for both probelm 1 and 2 as solution for probelm 2 applies to problem 1
+### Find out the best data-structure to represent/store the graph in memory.
+An adjacency list was chosen as the optimal data structure for representing and storing the graph for both problem 1 and 2 as solution for problem 2 applies to problem 1
 
 #### Problem 1: Homogenous amalgamated Star: S_n,3 (Ashna)
 This adjacency list is maintained within a Python class named Graph, which also encapsulates additional graph attributes such as n, k, order, vertex_labels, and edge_weights. The adjacency list itself is implemented as a dictionary, where each key corresponds to a vertex and its associated value is a list of the vertex's neighbors. This implementation facilitates efficient access to the neighbors of any given vertex, which is crucial for the performance of the graph labeling algorithm utilized in the project. This approach ensures both the simplicity of access and the efficiency of storage, aligning with the objectives of effective graph manipulation and data handling.
 
 #### Problem 2: Homogenous amalgamated Star: S_n,m (Melisa)
-(Also serves as solution to probelm 1) As in Problem 1, an adjacency list within a Graph class is used to store the graph’s structure. This adjacency list is implemented using a dictionary where keys represent vertices, and values are lists of adjacent vertices, facilitating efficient access to neighbors necessary for the graph labeling algorithm. Additionally, Problem 2 introduces an edge set, implemented as a Python set, named edge_weights_set. This set maintains a collection of possible edge weights that are yet to be used. The utilization of a set data structure here is pivotal for ensuring that the assignment of edge weights is unique and efficient, as sets inherently prevent duplicate entries and allow for rapid checks of membership, additions, and deletions. The approach of returning the minimum value in the set provides a O(1) retreival much faster than incrementing a value in searching through an array of edges until the the value is not in the edge_weights array. 
+(Also serves as solution to problem 1) As in Problem 1, an adjacency list within a Graph class is used to store the graph’s structure. This adjacency list is implemented using a dictionary where keys represent vertices, and values are lists of adjacent vertices, facilitating efficient access to neighbors necessary for the graph labeling algorithm. Additionally, Problem 2 introduces an edge set, implemented as a Python set, named edge_weights_set. This set maintains a collection of possible edge weights that are yet to be used. The utilization of a set data structure here is pivotal for ensuring that the assignment of edge weights is unique and efficient, as sets inherently prevent duplicate entries and allow for rapid checks of membership, additions, and deletions. The approach of returning the minimum value in the set provides an O(1) retrieval much faster than incrementing a value in searching through an array of edges until the value is not in the edge_weights array. 
 
 
 - Adjacency list: It uses an array of linked lists or arrays to represent the graph, where each element represents a vertex and its adjacent vertices. It is efficient for sparse graphs and consumes less memory. It allows efficient traversal of adjacent vertices.
@@ -17,7 +17,7 @@ This adjacency list is maintained within a Python class named Graph, which also 
    
 ### Devise an algorithm to assign the labels to the vertices using vertex k-labeling definition. (Main Task)
 #### Problem 1:
-a. **Algorithm Pseduocode** (vertex_k_labeling())
+a. **Algorithm Pseudocode** (vertex_k_labeling())
 
     i. **Set label 1 for the central vertex**
 
@@ -34,7 +34,7 @@ a. **Algorithm Pseduocode** (vertex_k_labeling())
 
     v.  For each \(i\) in range from 1 to ceiling of \(n / 4\) plus 1:
             1. For each \(j\) in the range from 1 to 2:
-                a. Set label of the current vertex to \(j + 1\).
+                a. Set the label of the current vertex to \(j + 1\).
                 b. Increment the vertex index by 1.
 
     vi. For each \(i\) in range from the ceiling of \(n / 4\) plus 1 to \(n\):
@@ -63,13 +63,13 @@ a. **Algorithm Pseudocode**
     viii. For each branch from 1 to n:
            1. If branch equals 1:
               a. Set vertex_labels[branch] to 1.
-              b. Calculate edge weight between the central vertex and this branch.
+              b. Calculate the edge weight between the central vertex and this branch.
               c. Assign this weight for both directions in edge_weights.
               d. Remove this weight from edge_weights_set.
            2. Else:
               a. Increment current_label by d.
               b. Set vertex_labels[branch] to floor(current_label).
-              c. Calculate edge weight between the central vertex and this branch.
+              c. Calculate the edge weight between the central vertex and this branch.
               d. Assign this weight for both directions in edge_weights.
               e. Remove this weight from edge_weights_set.
    
@@ -77,7 +77,7 @@ a. **Algorithm Pseudocode**
            1. For each leaf from 1 to m (exclusive)
               a. Find the minimum available weight not assigned to any edge (find_min_weight).
               b. Increment leaf_verts to get the next leaf vertex identifier.
-              c. Calculate label for this leaf vertex as the difference between leaf weight and branch's vertex label.
+              c. Calculate the label for this leaf vertex as the difference between leaf weight and branch's vertex label.
               d. Assign this label to leaf_verts in vertex_labels.
               e. Assign leaf_weight to the edge between this leaf and its branch in both directions in edge_weights.
               f. Remove leaf_weight from edge_weights_set.
@@ -87,7 +87,7 @@ a. **Algorithm Pseudocode**
 
 
 
-### What design strategy you will apply, also give justifications that selectedstrategy is most appropriate.
+### What design strategy you will apply, also give justifications that selected strategy is most appropriate.
 
 The design strategy used appears to be a systematic approach for assigning labels to vertices of a graph based on certain rules and conditions. It doesn’t neatly fit into a single category of algorithms, but it shares characteristics with constructive algorithms. Constructive algorithms build a solution piece by piece, following a set of rules or conditions. In this case, the algorithm constructs vertex labels for a graph according to a predefined procedure based on the number of vertices and their positions within the graph. It doesn't optimize a specific objective function or make choices based on optimization criteria as seen in many optimization algorithms. 
 
@@ -105,7 +105,18 @@ Graph data of labels and edge weights along with estimated time complexity will 
 
    
 ### Compare your results with mathematical property and tabulate the outcomes for comparison.
-...
+| Graph Type | Execution Time (ms) | Time Complexity |
+|------------|---------------------|-----------------|
+| S_3,2      | 283                 | 24              |
+| S_3,3      | 303                 | 45              |
+| S_4,4      | 348                 | 144             |
+| S_7,5      | 452                 | 630             |
+| S_8,6      | 516                 | 1200            |
+| S_12,4     | 515                 | 1200            |
+| S_4,12     | 518                 | 1200            |
+| S_15,5     | 664                 | 2850            |
+| S_20,7     | 20*                 | 9940            |
+
 
 ### Hardware resources supported until what maximum value of n, m.
 
