@@ -3,6 +3,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import time
 import psutil
+import time
 
 
 class Graph:
@@ -27,6 +28,7 @@ class Graph:
         self.order = order
         self.d = d
         self.adj_list = {i: [] for i in range(order)}  # Adjacency list representation of the graph
+        # self.edge_weights = {}  # Dictionary to store edge weights ## Uncomment for edge weights set list approach ##
         self.vertex_labels = {i: None for i in range(order)}  # Dictionary to store vertex labels
         
         ## Uncomment for edge weights set list min approach ##
@@ -82,11 +84,12 @@ class Graph:
                 self.vertex_labels[branch] = 1 
                 weight = self.vertex_labels[0] + self.vertex_labels[branch]       # Calculate edge weight
                 
+                if weight in self.edge_weights_set:
+                    self.edge_weights_set.remove(weight)
+                    
                 # Assign edge weight to the edge from center vertex to the branch in both directions **
                 self.edge_weights[(0, branch)] = weight
                 self.edge_weights[(branch, 0)] = weight
-                
-                self.edge_weights_set.remove(weight)
                 
                 # Labeling the rest of the branch vertices from branch 2 to n (inclusive)
             else:
@@ -127,15 +130,21 @@ class Graph:
             
             plt.figure(figsize=(12, 12))
             G = nx.Graph()
+
             G.add_nodes_from(range(self.order))
 
             # Adding edges from adjacency list
+
             for vertex, neighbors in adj_list.items():
+
                 for neighbor in neighbors:
+
                     G.add_edge(vertex, neighbor)
+
             pos = nx.spring_layout(G, seed= 123 )  # positions for all nodes
 
             # Adding node labels
+
             labels = {node: str(label) for node, label in vertex_labels.items()}
             nx.draw_networkx_labels(G, pos, labels=labels, font_size=10, font_color='black')
 
@@ -145,13 +154,13 @@ class Graph:
             # Drawing edge labels
             nx.draw_networkx_edge_labels(G, pos, edge_labels=self.edge_weights, font_color='indigo')
             
-            plt.title('Edge Irregular Amalgamated Star Graph of S_{},{}'.format(self.n, self.m))
+            plt.title('Edge Orregular Amalgamated Star Graph of S_{},{}'.format(self.n, self.m))
             plt.axis('off')
 
             # Save the graph as a PNG file
             plt.savefig("star_graph.png")
             
-            plt.show()
+            # plt.show()  # Uncomment to display the graph in the console
 
         else:
             print("The graph is too large to visualize.")
@@ -252,9 +261,9 @@ def build_and_visualize_graph(n, m):
     start_output_files(n, m, k, order, d)  # Initialize the output files with the input parameters
     graph.build_graph()              # Build the graph
     graph.vertex_k_labeling()        # Label the vertices
-    graph.visualize_graph()          # Visualize the graph
-   
     graph_output(graph, graph.vertex_labels, graph.edge_weights)  # Output graph data to a file
+    graph.visualize_graph()          # Visualize the graph
+    
 def test_limits(n, m, increment):
     """
     Tests the hardware limits by building a graph with n arms and m leaves per arm.
@@ -297,10 +306,17 @@ def main():
     elif user_input == "build":
         n = int(input("Enter the number of arms (n): "))
         m = int(input("Enter the number of leaves per arm (m): "))
+        start_time = time.time()
+        build_and_visualize_graph(n, m)
+        end_time = time.time()
+        
+        execution_time = end_time - start_time
+        print(f"Total execution time: {execution_time} seconds")
         build_and_visualize_graph(n, m)
     else:
         print("Invalid input. Please enter 'test' or 'build'.")
     
 if __name__ == "__main__":
     main()
+    
     
