@@ -122,8 +122,9 @@ NOTE: Execution time includes visualization of the graph. Uncomment the call for
 
 ### Hardware resources supported until what maximum value of n, m.
 
-Using test_limits the system will construct graphs n>=3 and m>=1 incrementing by 1. Though this is not a full coverage and precise measurement we are still able to get a good estimation of what limitations are depending on hardware specifications. 
+Using the test_limits function, the system is specifically designed to construct graphs with n starting from 3 and incrementing by 1, while keeping m fixed at 4. This targeted approach focuses on testing the maximum n values to understand the upper limits of what the hardware can support. By incrementing only n, we can systematically assess the graph complexity that the hardware can handle without being confounded by changes in m. Although this method does not provide a comprehensive evaluation of all possible configurations, it still offers a valuable estimation of hardware limitations based primarily on the size of n. This is crucial for determining the scalability and performance thresholds specific to the given hardware environment.
 
+NOTE: Ctrl + c to end testing before limit
 Testing Specs:
 
          - CPU: AMD Ryzen 9 3950X      
