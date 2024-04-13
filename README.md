@@ -105,6 +105,8 @@ Graph data of labels and edge weights along with estimated time complexity will 
 
    
 ### Compare your results with mathematical property and tabulate the outcomes for comparison.
+
+NOTE: Execution time includes visualization of the graph. Uncomment the call for visualization to see strictly graph construction time.
 | Graph Type | Execution Time (ms) | Time Complexity |
 |------------|---------------------|-----------------|
 | S_3,2      | 283                 | 24              |
@@ -115,7 +117,7 @@ Graph data of labels and edge weights along with estimated time complexity will 
 | S_12,4     | 515                 | 1200            |
 | S_4,12     | 518                 | 1200            |
 | S_15,5     | 664                 | 2850            |
-| S_20,7     | 20*                 | 9940            |
+| S_20,7     | 20*                 | 9940            | *Due to graph being too large to visualize
 
 
 ### Hardware resources supported until what maximum value of n, m.
