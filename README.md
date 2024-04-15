@@ -161,5 +161,33 @@ compute_time_complexity function outputs the estimated time complexity to the gr
 **Overall Time Complexity Calculation Example:**
 Time Complexity = O(25 + 24) = O(49)
 
+#### Problem 3:
 
+### A suitable name for the graph is Snowflake Star Graph
 
+### Formulas for calculating order and size of the graph
+
+         a. The order of a graph is the number of vertices it has. For this graph: 
+         
+         b. Order = 1 (center node) + n (branch nodes) + 2n (leaf nodes) 
+         
+         c. So the formula for the order is: Order = 1 + 3n 
+         
+         d. The size of a graph is the number of edges it has. For this graph: 
+
+            - There are n edges connecting the center to the branch nodes. 
+            
+            - Each branch node is connected to 2 leaf nodes, so there are 2n such edges. 
+            
+            - Each branch node is connected to 2 other branch nodes (forming a cycle), so there are n such edges, but since each edge connects two branch nodes, these are already accounted for and don't need to be doubled. 
+
+         e. So the formula for the size is: Size = n + 2n + n = 4n 
+
+### Data structure to store the graph
+The graph is stored using an adjacency list, which is suitable for sparse graphs. Each node has a list of its neighbors, and this is efficient for the graph operations required here. A dictionary structure in Python is used to maintain the adjacency list and another to maintain the edge labels.
+
+### Assign the labels using an algorithm
+In the approach to graph labeling, an edge irregular k-labeling strategy was adopted where the label of an edge is defined as the maximum of the labels of the two nodes it connects. This method ensures that all edges receive unique labels, a property critical for applications such as frequency assignment in radio networks and circuit layout designs. Importantly, the inclusion of edges between branch nodes means our graph transcends a simple tree structure, necessitating a reassessment of the k value upper bound. Consequently, the upper bound is refined to k = (number of edges)×log2(number of vertices), reflecting the increased complexity and connectivity of the graph. The vertex labeling follows a deliberate pattern, starting with the initial labeling of the central node as 1 to anchor the structure. From there, the internal branch nodes begin their labels at 11, incrementing by an alternating scheme that assigns every other odd number to ensure differentiation among them. This pattern extends to the leaf nodes, with each first leaf node labeled 1 unit higher than its parent branch node, and every second leaf node receiving a label 3 units higher. This meticulous labeling strategy ensures that each vertex has a distinct identification, facilitating the unique identification of each edge by the sum of its vertices' labels, thus optimizing the graph's overall labeling for clarity and efficiency in its intended applications.
+
+### Store the labels of vertices and weights of the edges as an outcome
+The vertex labels and edge weights (labels) are stored in dictionaries. The vertex_labels dictionary maps each vertex to its label, and the edge_labels dictionary maps each edge (represented as a tuple of vertices) to its label. This is efficient for lookup and update operations and is a common way to store such information in graph algorithms. 
