@@ -161,7 +161,7 @@ compute_time_complexity function outputs the estimated time complexity to the gr
 **Overall Time Complexity Calculation Example:**
 Time Complexity = O(25 + 24) = O(49)
 
-#### Problem 3:
+### Problem 3:
 
 ### A suitable name for the graph is Snowflake Star Graph
 
