@@ -59,7 +59,7 @@ class Graph:
     def build_graph(self):
         
         outer_verts = self.n
-        # Constructing the star graph with n branchs and m leaves per branch by adding edges 
+        # Constructing the star graph with n branches and m leaves per branch by adding edges 
         for i in range(1, self.n + 1):
             self.add_edge(0, i, 0)  # Connect central vertex to banches
             for j in range(1, self.m):
@@ -68,7 +68,7 @@ class Graph:
                 
     def vertex_k_labeling(self):
         """
-        Greedy labeling starting from the central vertex.
+        Greedy labeling starts from the central vertex.
 
         Returns:
         dict: A dictionary of vertex labels.
@@ -88,7 +88,7 @@ class Graph:
                 if weight in self.edge_weights_set:
                     self.edge_weights_set.remove(weight)
                     
-                # Assign edge weight to the edge from center vertex to the branch in both directions **
+                # Assign edge weight to the edge from the center vertex to the branch in both directions **
                 self.edge_weights[(0, branch)] = weight
                 self.edge_weights[(branch, 0)] = weight
                 
@@ -135,7 +135,7 @@ class Graph:
 
             G.add_nodes_from(range(self.order))
 
-            # Adding edges from adjacency list
+            # Adding edges from the adjacency list
 
             for vertex, neighbors in adj_list.items():
 
@@ -156,7 +156,7 @@ class Graph:
             # Drawing edge labels
             nx.draw_networkx_edge_labels(G, pos, edge_labels=self.edge_weights, font_color='indigo')
             
-            plt.title('Edge Orregular Amalgamated Star Graph of S_{},{}'.format(self.n, self.m))
+            plt.title('Edge Irregular Amalgamated Star Graph of S_{},{}'.format(self.n, self.m))
             plt.axis('off')
 
             # Save the graph as a PNG file
